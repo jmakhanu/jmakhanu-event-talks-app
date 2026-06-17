@@ -925,6 +925,11 @@
             }
         }
 
+        *:focus-visible {
+            outline: 2px solid var(--accent-blue);
+            outline-offset: 2px;
+        }
+
         /* Light Mode CSS Overrides */
         html.light-mode {
             --bg-primary: #f8fafc;
@@ -932,7 +937,7 @@
             --bg-tertiary: #f1f5f9;
             --text-primary: #0f172a;
             --text-secondary: #475569;
-            --text-muted: #64748b;
+            --text-muted: #475569; /* Optimized for higher contrast */
         }
 
         html.light-mode header,
@@ -1076,38 +1081,38 @@
         <div class="sidebar">
             <div class="search-box">
                 <i data-lucide="search"></i>
-                <input type="text" id="search-input" placeholder="Search release notes..." oninput="filterAndRender()">
+                <input type="text" id="search-input" placeholder="Search release notes..." oninput="filterAndRender()" aria-label="Search release notes">
             </div>
             
             <div class="sidebar-card">
                 <h3><i data-lucide="filter"></i> Categories</h3>
                 <ul class="filter-list">
                     <li>
-                        <button class="filter-btn active" data-filter="all" onclick="setFilter('all')">
+                        <button class="filter-btn active" data-filter="all" onclick="setFilter('all')" aria-label="Show all updates">
                             <span><span class="filter-indicator" style="background: var(--text-muted)"></span>All Updates</span>
                             <span class="badge-count" id="count-all">0</span>
                         </button>
                     </li>
                     <li>
-                        <button class="filter-btn" data-filter="feature" onclick="setFilter('feature')">
+                        <button class="filter-btn" data-filter="feature" onclick="setFilter('feature')" aria-label="Filter by features">
                             <span><span class="filter-indicator" style="background: var(--feature-color)"></span>Features</span>
                             <span class="badge-count" id="count-feature">0</span>
                         </button>
                     </li>
                     <li>
-                        <button class="filter-btn" data-filter="announcement" onclick="setFilter('announcement')">
+                        <button class="filter-btn" data-filter="announcement" onclick="setFilter('announcement')" aria-label="Filter by announcements">
                             <span><span class="filter-indicator" style="background: var(--announcement-color)"></span>Announcements</span>
                             <span class="badge-count" id="count-announcement">0</span>
                         </button>
                     </li>
                     <li>
-                        <button class="filter-btn" data-filter="issue" onclick="setFilter('issue')">
+                        <button class="filter-btn" data-filter="issue" onclick="setFilter('issue')" aria-label="Filter by issues">
                             <span><span class="filter-indicator" style="background: var(--issue-color)"></span>Issues</span>
                             <span class="badge-count" id="count-issue">0</span>
                         </button>
                     </li>
                     <li>
-                        <button class="filter-btn" data-filter="deprecation" onclick="setFilter('deprecation')">
+                        <button class="filter-btn" data-filter="deprecation" onclick="setFilter('deprecation')" aria-label="Filter by deprecations">
                             <span><span class="filter-indicator" style="background: var(--deprecation-color)"></span>Deprecations</span>
                             <span class="badge-count" id="count-deprecation">0</span>
                         </button>
@@ -1119,10 +1124,10 @@
         <!-- Release Notes Feed -->
         <div class="content-area">
             <div class="stream-header">
-                <div class="stream-info" id="stream-info">Showing all updates</div>
+                <div class="stream-info" id="stream-info" aria-live="polite">Showing all updates</div>
                 <div class="stream-sort">
                     <span>Sort:</span>
-                    <select id="sort-select" onchange="filterAndRender()">
+                    <select id="sort-select" onchange="filterAndRender()" aria-label="Sort order">
                         <option value="newest">Newest First</option>
                         <option value="oldest">Oldest First</option>
                     </select>
@@ -1137,11 +1142,11 @@
     </main>
 
     <!-- Tweet Modal Overlay -->
-    <div class="modal-overlay" id="tweet-modal">
+    <div class="modal-overlay" id="tweet-modal" role="dialog" aria-modal="true" aria-labelledby="modal-title" aria-hidden="true">
         <div class="modal-card">
             <div class="modal-header">
-                <h2><i data-lucide="twitter" style="color: #1d9bf0"></i> Craft Tweet</h2>
-                <button class="close-modal-btn" onclick="closeTweetModal()">
+                <h2 id="modal-title"><i data-lucide="twitter" style="color: #1d9bf0"></i> Craft Tweet</h2>
+                <button class="close-modal-btn" onclick="closeTweetModal()" aria-label="Close modal">
                     <i data-lucide="x"></i>
                 </button>
             </div>
@@ -1495,12 +1500,21 @@
             
             updateCharCount();
             
-            document.getElementById('tweet-modal').classList.add('active');
+            const modal = document.getElementById('tweet-modal');
+            modal.classList.add('active');
+            modal.setAttribute('aria-hidden', 'false');
+            
+            // Set focus inside the text area for screen reader context
+            setTimeout(() => {
+                document.getElementById('tweet-textarea').focus();
+            }, 100);
         }
 
         // Close Tweet modal
         function closeTweetModal() {
-            document.getElementById('tweet-modal').classList.remove('active');
+            const modal = document.getElementById('tweet-modal');
+            modal.classList.remove('active');
+            modal.setAttribute('aria-hidden', 'true');
             activeTweetUpdate = null;
         }
 
