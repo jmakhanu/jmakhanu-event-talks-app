@@ -924,6 +924,112 @@
                 justify-content: center;
             }
         }
+
+        /* Light Mode CSS Overrides */
+        html.light-mode {
+            --bg-primary: #f8fafc;
+            --bg-secondary: #ffffff;
+            --bg-tertiary: #f1f5f9;
+            --text-primary: #0f172a;
+            --text-secondary: #475569;
+            --text-muted: #64748b;
+        }
+
+        html.light-mode header,
+        html.light-mode .search-box input,
+        html.light-mode .sidebar-card,
+        html.light-mode .stream-sort select,
+        html.light-mode .note-card,
+        html.light-mode .note-actions,
+        html.light-mode .action-btn,
+        html.light-mode .empty-state,
+        html.light-mode .skeleton-card,
+        html.light-mode .modal-card,
+        html.light-mode .modal-header,
+        html.light-mode .tweet-composer-area,
+        html.light-mode .composer-footer,
+        html.light-mode .original-update-preview,
+        html.light-mode .modal-footer,
+        html.light-mode .toast {
+            border-color: rgba(15, 23, 42, 0.08) !important;
+        }
+        
+        html.light-mode .refresh-btn {
+            border-color: rgba(15, 23, 42, 0.12) !important;
+        }
+
+        .theme-toggle-btn {
+            background: transparent;
+            border: none;
+            color: var(--text-secondary);
+            cursor: pointer;
+            padding: 0.5rem;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            border-radius: var(--border-radius-md);
+            transition: var(--transition-smooth);
+        }
+
+        .theme-toggle-btn:hover {
+            background: rgba(255, 255, 255, 0.05);
+            color: var(--text-primary);
+        }
+
+        html.light-mode .theme-toggle-btn:hover {
+            background: rgba(15, 23, 42, 0.05) !important;
+        }
+
+        html.light-mode .filter-btn:hover {
+            background: rgba(15, 23, 42, 0.03) !important;
+        }
+
+        html.light-mode .filter-btn .badge-count {
+            background: rgba(15, 23, 42, 0.05) !important;
+            color: var(--text-secondary) !important;
+        }
+
+        html.light-mode .note-body code {
+            background: rgba(15, 23, 42, 0.05) !important;
+            color: #d0176d !important;
+        }
+
+        html.light-mode .modal-card {
+            box-shadow: 0 20px 50px rgba(15, 23, 42, 0.1) !important;
+        }
+
+        html.light-mode .toast {
+            box-shadow: 0 10px 25px rgba(15, 23, 42, 0.06) !important;
+        }
+
+        html.light-mode ::-webkit-scrollbar-track {
+            background: var(--bg-primary);
+        }
+        html.light-mode ::-webkit-scrollbar-thumb {
+            background: rgba(15, 23, 42, 0.15);
+            border: 2px solid var(--bg-primary);
+        }
+        html.light-mode ::-webkit-scrollbar-thumb:hover {
+            background: rgba(15, 23, 42, 0.25);
+        }
+
+        html.light-mode .skeleton {
+            background: linear-gradient(
+                90deg,
+                #e2e8f0 25%,
+                #f1f5f9 50%,
+                #e2e8f0 75%
+            ) !important;
+            background-size: 200% 100% !important;
+        }
+
+        html.light-mode .modal-overlay {
+            background: rgba(15, 23, 42, 0.4) !important;
+        }
+
+        html.light-mode header {
+            background: rgba(255, 255, 255, 0.8) !important;
+        }
     </style>
 </head>
 <body>
@@ -943,15 +1049,23 @@
                     <p>Google Cloud Updates Stream</p>
                 </div>
             </div>
-            <div style="display: flex; gap: 0.75rem;">
-                <button class="refresh-btn export-btn" id="export-csv-btn" onclick="exportToCSV()">
-                    <i data-lucide="download"></i>
-                    <span>Export CSV</span>
+            <div style="display: flex; align-items: center; gap: 1rem;">
+                <!-- Theme Toggle Button -->
+                <button class="theme-toggle-btn" id="theme-toggle-btn" onclick="toggleTheme()" aria-label="Toggle Theme">
+                    <i data-lucide="sun" id="theme-icon-light" style="display: none; width: 20px; height: 20px;"></i>
+                    <i data-lucide="moon" id="theme-icon-dark" style="width: 20px; height: 20px;"></i>
                 </button>
-                <button class="refresh-btn" id="refresh-btn" onclick="fetchUpdates()">
-                    <i data-lucide="rotate-cw"></i>
-                    <span>Refresh Feed</span>
-                </button>
+
+                <div style="display: flex; gap: 0.75rem;">
+                    <button class="refresh-btn export-btn" id="export-csv-btn" onclick="exportToCSV()">
+                        <i data-lucide="download"></i>
+                        <span>Export CSV</span>
+                    </button>
+                    <button class="refresh-btn" id="refresh-btn" onclick="fetchUpdates()">
+                        <i data-lucide="rotate-cw"></i>
+                        <span>Refresh Feed</span>
+                    </button>
+                </div>
             </div>
         </div>
     </header>
@@ -1062,6 +1176,7 @@
 
         // On Page Load
         document.addEventListener('DOMContentLoaded', () => {
+            initTheme();
             lucide.createIcons();
             fetchUpdates();
         });
@@ -1423,6 +1538,45 @@
             window.open(twitterUrl, '_blank');
             closeTweetModal();
             showToast('Opening Twitter to share!');
+        }
+
+        // Toggle theme (Dark/Light mode)
+        function toggleTheme() {
+            const html = document.documentElement;
+            const darkIcon = document.getElementById('theme-icon-dark');
+            const lightIcon = document.getElementById('theme-icon-light');
+            
+            if (html.classList.contains('light-mode')) {
+                html.classList.remove('light-mode');
+                darkIcon.style.display = 'block';
+                lightIcon.style.display = 'none';
+                localStorage.setItem('theme', 'dark');
+                showToast('Swapped to dark mode!');
+            } else {
+                html.classList.add('light-mode');
+                darkIcon.style.display = 'none';
+                lightIcon.style.display = 'block';
+                localStorage.setItem('theme', 'light');
+                showToast('Swapped to light mode!');
+            }
+        }
+
+        // Initialize Theme on Page Load
+        function initTheme() {
+            const savedTheme = localStorage.getItem('theme');
+            const html = document.documentElement;
+            const darkIcon = document.getElementById('theme-icon-dark');
+            const lightIcon = document.getElementById('theme-icon-light');
+            
+            if (savedTheme === 'light') {
+                html.classList.add('light-mode');
+                if (darkIcon) darkIcon.style.display = 'none';
+                if (lightIcon) lightIcon.style.display = 'block';
+            } else {
+                html.classList.remove('light-mode');
+                if (darkIcon) darkIcon.style.display = 'block';
+                if (lightIcon) lightIcon.style.display = 'none';
+            }
         }
     </script>
 </body>
