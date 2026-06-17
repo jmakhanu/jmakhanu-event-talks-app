@@ -1,0 +1,1351 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>BigQuery Release Notes Hub</title>
+    
+    <!-- Google Fonts -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">
+    
+    <!-- Lucide Icons -->
+    <script src="https://unpkg.com/lucide@latest"></script>
+
+    <style>
+        :root {
+            --bg-primary: #0b0f19;
+            --bg-secondary: #161f30;
+            --bg-tertiary: #1f2d47;
+            --accent-blue: #3b82f6;
+            --accent-cyan: #06b6d4;
+            --accent-indigo: #6366f1;
+            --accent-purple: #8b5cf6;
+            --text-primary: #f8fafc;
+            --text-secondary: #94a3b8;
+            --text-muted: #64748b;
+            
+            --feature-color: #10b981;
+            --announcement-color: #3b82f6;
+            --issue-color: #f59e0b;
+            --deprecation-color: #ef4444;
+            --general-color: #8b5cf6;
+            
+            --border-radius-sm: 8px;
+            --border-radius-md: 12px;
+            --border-radius-lg: 20px;
+            --border-radius-full: 9999px;
+            
+            --transition-smooth: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+        }
+
+        * {
+            box-sizing: border-box;
+            margin: 0;
+            padding: 0;
+        }
+
+        body {
+            background-color: var(--bg-primary);
+            color: var(--text-primary);
+            font-family: 'Inter', sans-serif;
+            min-height: 100vh;
+            display: flex;
+            flex-direction: column;
+            overflow-x: hidden;
+            background-image: 
+                radial-gradient(circle at 10% 20%, rgba(99, 102, 241, 0.05) 0%, transparent 40%),
+                radial-gradient(circle at 90% 80%, rgba(6, 182, 212, 0.05) 0%, transparent 40%);
+            background-attachment: fixed;
+        }
+
+        /* Custom Scrollbar */
+        ::-webkit-scrollbar {
+            width: 8px;
+        }
+        ::-webkit-scrollbar-track {
+            background: var(--bg-primary);
+        }
+        ::-webkit-scrollbar-thumb {
+            background: var(--bg-secondary);
+            border-radius: var(--border-radius-full);
+            border: 2px solid var(--bg-primary);
+        }
+        ::-webkit-scrollbar-thumb:hover {
+            background: var(--text-muted);
+        }
+
+        /* Header styles */
+        header {
+            background: rgba(11, 15, 25, 0.7);
+            backdrop-filter: blur(16px);
+            -webkit-backdrop-filter: blur(16px);
+            border-bottom: 1px solid rgba(255, 255, 255, 0.05);
+            position: sticky;
+            top: 0;
+            z-index: 100;
+            padding: 1.25rem 2rem;
+            transition: var(--transition-smooth);
+        }
+
+        .header-container {
+            max-width: 1400px;
+            margin: 0 auto;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+        }
+
+        .logo-area {
+            display: flex;
+            align-items: center;
+            gap: 0.75rem;
+        }
+
+        .logo-icon {
+            background: linear-gradient(135deg, var(--accent-blue), var(--accent-indigo));
+            width: 42px;
+            height: 42px;
+            border-radius: var(--border-radius-md);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: white;
+            box-shadow: 0 4px 20px rgba(59, 130, 246, 0.3);
+        }
+
+        .logo-title h1 {
+            font-size: 1.25rem;
+            font-weight: 800;
+            letter-spacing: -0.025em;
+            background: linear-gradient(to right, var(--text-primary), #cbd5e1);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+        }
+
+        .logo-title p {
+            font-size: 0.75rem;
+            color: var(--text-secondary);
+            font-weight: 500;
+        }
+
+        .refresh-btn {
+            background: var(--bg-secondary);
+            color: var(--text-primary);
+            border: 1px solid rgba(255, 255, 255, 0.1);
+            padding: 0.625rem 1.25rem;
+            border-radius: var(--border-radius-md);
+            font-size: 0.875rem;
+            font-weight: 600;
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+            transition: var(--transition-smooth);
+            position: relative;
+            overflow: hidden;
+        }
+
+        .refresh-btn::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: -100%;
+            width: 100%;
+            height: 100%;
+            background: linear-gradient(
+                90deg,
+                transparent,
+                rgba(255, 255, 255, 0.05),
+                transparent
+            );
+            transition: 0.5s;
+        }
+
+        .refresh-btn:hover::before {
+            left: 100%;
+        }
+
+        .refresh-btn:hover {
+            background: var(--bg-tertiary);
+            border-color: rgba(255, 255, 255, 0.2);
+            transform: translateY(-1px);
+        }
+
+        .refresh-btn:active {
+            transform: translateY(1px);
+        }
+
+        .refresh-btn.loading svg {
+            animation: spin 1s linear infinite;
+        }
+
+        @keyframes spin {
+            from { transform: rotate(0deg); }
+            to { transform: rotate(360deg); }
+        }
+
+        /* Main Container */
+        main {
+            flex: 1;
+            max-width: 1400px;
+            width: 100%;
+            margin: 0 auto;
+            padding: 2rem;
+            display: grid;
+            grid-template-columns: 300px 1fr;
+            gap: 2rem;
+        }
+
+        /* Left Column: Filter Sidebar */
+        .sidebar {
+            position: sticky;
+            top: 90px;
+            height: fit-content;
+            display: flex;
+            flex-direction: column;
+            gap: 1.5rem;
+        }
+
+        .search-box {
+            position: relative;
+        }
+
+        .search-box input {
+            width: 100%;
+            background: var(--bg-secondary);
+            border: 1px solid rgba(255, 255, 255, 0.08);
+            border-radius: var(--border-radius-md);
+            padding: 0.75rem 1rem 0.75rem 2.75rem;
+            color: var(--text-primary);
+            font-family: inherit;
+            font-size: 0.9rem;
+            transition: var(--transition-smooth);
+        }
+
+        .search-box input:focus {
+            outline: none;
+            border-color: var(--accent-blue);
+            box-shadow: 0 0 0 3px rgba(59, 130, 246, 0.15);
+            background: var(--bg-tertiary);
+        }
+
+        .search-box i {
+            position: absolute;
+            left: 1rem;
+            top: 50%;
+            transform: translateY(-50%);
+            color: var(--text-muted);
+            pointer-events: none;
+            width: 18px;
+            height: 18px;
+        }
+
+        .sidebar-card {
+            background: var(--bg-secondary);
+            border: 1px solid rgba(255, 255, 255, 0.05);
+            border-radius: var(--border-radius-lg);
+            padding: 1.5rem;
+            display: flex;
+            flex-direction: column;
+            gap: 1.25rem;
+            box-shadow: 0 10px 30px rgba(0, 0, 0, 0.2);
+        }
+
+        .sidebar-card h3 {
+            font-size: 0.95rem;
+            text-transform: uppercase;
+            letter-spacing: 0.05em;
+            color: var(--text-secondary);
+            font-weight: 700;
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+        }
+
+        .filter-list {
+            list-style: none;
+            display: flex;
+            flex-direction: column;
+            gap: 0.5rem;
+        }
+
+        .filter-btn {
+            width: 100%;
+            background: transparent;
+            border: none;
+            color: var(--text-secondary);
+            padding: 0.625rem 0.75rem;
+            border-radius: var(--border-radius-md);
+            text-align: left;
+            font-family: inherit;
+            font-size: 0.875rem;
+            font-weight: 500;
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            transition: var(--transition-smooth);
+        }
+
+        .filter-btn:hover {
+            background: rgba(255, 255, 255, 0.03);
+            color: var(--text-primary);
+        }
+
+        .filter-btn.active {
+            background: rgba(59, 130, 246, 0.1);
+            color: var(--accent-blue);
+            font-weight: 600;
+        }
+
+        .filter-btn .badge-count {
+            background: rgba(255, 255, 255, 0.06);
+            color: var(--text-secondary);
+            font-size: 0.75rem;
+            padding: 2px 8px;
+            border-radius: var(--border-radius-full);
+            font-weight: 600;
+        }
+
+        .filter-btn.active .badge-count {
+            background: rgba(59, 130, 246, 0.2);
+            color: var(--accent-blue);
+        }
+
+        .filter-indicator {
+            width: 8px;
+            height: 8px;
+            border-radius: 50%;
+            display: inline-block;
+            margin-right: 8px;
+        }
+
+        /* Right Column: Release Notes Stream */
+        .content-area {
+            display: flex;
+            flex-direction: column;
+            gap: 1.5rem;
+        }
+
+        .stream-header {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+        }
+
+        .stream-info {
+            font-size: 0.875rem;
+            color: var(--text-secondary);
+        }
+
+        .stream-sort {
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+            font-size: 0.875rem;
+            color: var(--text-secondary);
+        }
+
+        .stream-sort select {
+            background: var(--bg-secondary);
+            color: var(--text-primary);
+            border: 1px solid rgba(255, 255, 255, 0.08);
+            border-radius: var(--border-radius-md);
+            padding: 0.4rem 1.5rem 0.4rem 0.75rem;
+            font-family: inherit;
+            font-size: 0.875rem;
+            cursor: pointer;
+            outline: none;
+            transition: var(--transition-smooth);
+            appearance: none;
+            background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' fill='none' viewBox='0 0 24 24' stroke='%2394a3b8' stroke-width='2'%3E%3Cpath stroke-linecap='round' stroke-linejoin='round' d='M19.5 8.25l-7.5 7.5-7.5-7.5'/%3E%3C/svg%3E");
+            background-repeat: no-repeat;
+            background-position: right 0.5rem center;
+            background-size: 1rem;
+        }
+
+        .stream-sort select:focus {
+            border-color: var(--accent-blue);
+        }
+
+        .notes-list {
+            display: flex;
+            flex-direction: column;
+            gap: 1.25rem;
+        }
+
+        .note-card {
+            background: var(--bg-secondary);
+            border: 1px solid rgba(255, 255, 255, 0.04);
+            border-radius: var(--border-radius-lg);
+            padding: 1.75rem;
+            display: flex;
+            flex-direction: column;
+            gap: 1rem;
+            transition: var(--transition-smooth);
+            position: relative;
+            overflow: hidden;
+            box-shadow: 0 4px 20px rgba(0, 0, 0, 0.15);
+        }
+
+        .note-card::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 4px;
+            height: 100%;
+            background: var(--general-color);
+        }
+
+        .note-card.feature::before { background: var(--feature-color); }
+        .note-card.announcement::before { background: var(--announcement-color); }
+        .note-card.issue::before { background: var(--issue-color); }
+        .note-card.deprecation::before { background: var(--deprecation-color); }
+
+        .note-card:hover {
+            transform: translateY(-2px);
+            border-color: rgba(255, 255, 255, 0.08);
+            box-shadow: 0 10px 30px rgba(0, 0, 0, 0.3);
+        }
+
+        .note-meta {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            flex-wrap: wrap;
+            gap: 0.75rem;
+        }
+
+        .meta-left {
+            display: flex;
+            align-items: center;
+            gap: 0.75rem;
+        }
+
+        .type-badge {
+            font-size: 0.75rem;
+            font-weight: 700;
+            text-transform: uppercase;
+            letter-spacing: 0.05em;
+            padding: 4px 10px;
+            border-radius: var(--border-radius-full);
+            display: flex;
+            align-items: center;
+            gap: 0.375rem;
+        }
+
+        .type-badge.feature {
+            background: rgba(16, 185, 129, 0.1);
+            color: var(--feature-color);
+        }
+        .type-badge.announcement {
+            background: rgba(59, 130, 246, 0.1);
+            color: var(--announcement-color);
+        }
+        .type-badge.issue {
+            background: rgba(245, 158, 11, 0.1);
+            color: var(--issue-color);
+        }
+        .type-badge.deprecation {
+            background: rgba(239, 68, 68, 0.1);
+            color: var(--deprecation-color);
+        }
+        .type-badge.general {
+            background: rgba(139, 92, 246, 0.1);
+            color: var(--general-color);
+        }
+
+        .note-date {
+            font-size: 0.85rem;
+            color: var(--text-secondary);
+            font-weight: 500;
+            display: flex;
+            align-items: center;
+            gap: 0.375rem;
+        }
+
+        .note-body {
+            font-size: 0.95rem;
+            line-height: 1.6;
+            color: #cbd5e1;
+        }
+
+        .note-body p {
+            margin-bottom: 0.75rem;
+        }
+
+        .note-body p:last-child {
+            margin-bottom: 0;
+        }
+
+        .note-body a {
+            color: var(--accent-blue);
+            text-decoration: none;
+            font-weight: 500;
+            transition: var(--transition-smooth);
+            border-bottom: 1px dashed rgba(59, 130, 246, 0.4);
+        }
+
+        .note-body a:hover {
+            color: var(--accent-cyan);
+            border-bottom-style: solid;
+        }
+
+        .note-body code {
+            font-family: 'JetBrains Mono', monospace;
+            background: rgba(255, 255, 255, 0.06);
+            color: #f472b6;
+            padding: 2px 6px;
+            border-radius: 4px;
+            font-size: 0.875rem;
+        }
+
+        .note-body ul, .note-body ol {
+            margin-left: 1.5rem;
+            margin-bottom: 0.75rem;
+        }
+
+        .note-body li {
+            margin-bottom: 0.25rem;
+        }
+
+        .note-actions {
+            border-top: 1px solid rgba(255, 255, 255, 0.05);
+            padding-top: 1rem;
+            display: flex;
+            align-items: center;
+            justify-content: flex-end;
+            gap: 0.75rem;
+        }
+
+        .action-btn {
+            background: transparent;
+            border: 1px solid rgba(255, 255, 255, 0.06);
+            color: var(--text-secondary);
+            padding: 0.5rem 1rem;
+            border-radius: var(--border-radius-md);
+            font-size: 0.825rem;
+            font-weight: 600;
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            gap: 0.4rem;
+            transition: var(--transition-smooth);
+        }
+
+        .action-btn:hover {
+            background: rgba(255, 255, 255, 0.04);
+            color: var(--text-primary);
+            border-color: rgba(255, 255, 255, 0.12);
+        }
+
+        .action-btn.tweet-btn {
+            background: rgba(29, 155, 240, 0.08);
+            border-color: rgba(29, 155, 240, 0.2);
+            color: #1d9bf0;
+        }
+
+        .action-btn.tweet-btn:hover {
+            background: #1d9bf0;
+            color: white;
+            border-color: #1d9bf0;
+            box-shadow: 0 4px 15px rgba(29, 155, 240, 0.3);
+        }
+
+        /* Empty State */
+        .empty-state {
+            text-align: center;
+            padding: 5rem 2rem;
+            background: var(--bg-secondary);
+            border-radius: var(--border-radius-lg);
+            border: 1px dashed rgba(255, 255, 255, 0.05);
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            gap: 1rem;
+        }
+
+        .empty-state i {
+            color: var(--text-muted);
+            width: 48px;
+            height: 48px;
+        }
+
+        .empty-state h3 {
+            font-size: 1.25rem;
+            font-weight: 600;
+        }
+
+        .empty-state p {
+            color: var(--text-secondary);
+            max-width: 400px;
+            font-size: 0.9rem;
+        }
+
+        /* Skeleton Loading */
+        .skeleton {
+            background: linear-gradient(
+                90deg,
+                var(--bg-secondary) 25%,
+                var(--bg-tertiary) 50%,
+                var(--bg-secondary) 75%
+            );
+            background-size: 200% 100%;
+            animation: loading-shimmer 1.5s infinite;
+        }
+
+        @keyframes loading-shimmer {
+            0% { background-position: 200% 0; }
+            100% { background-position: -200% 0; }
+        }
+
+        .skeleton-card {
+            background: var(--bg-secondary);
+            border: 1px solid rgba(255, 255, 255, 0.04);
+            border-radius: var(--border-radius-lg);
+            padding: 1.75rem;
+            display: flex;
+            flex-direction: column;
+            gap: 1.25rem;
+        }
+
+        .skeleton-badge {
+            width: 80px;
+            height: 24px;
+            border-radius: var(--border-radius-full);
+        }
+
+        .skeleton-date {
+            width: 120px;
+            height: 18px;
+            border-radius: 4px;
+        }
+
+        .skeleton-text {
+            height: 16px;
+            border-radius: 4px;
+            width: 100%;
+        }
+
+        .skeleton-text.short {
+            width: 60%;
+        }
+
+        .skeleton-actions {
+            height: 36px;
+            width: 150px;
+            align-self: flex-end;
+            border-radius: var(--border-radius-md);
+        }
+
+        /* Tweet Modal */
+        .modal-overlay {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(5, 7, 12, 0.8);
+            backdrop-filter: blur(8px);
+            -webkit-backdrop-filter: blur(8px);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            z-index: 1000;
+            opacity: 0;
+            pointer-events: none;
+            transition: var(--transition-smooth);
+            padding: 1rem;
+        }
+
+        .modal-overlay.active {
+            opacity: 1;
+            pointer-events: all;
+        }
+
+        .modal-card {
+            background: var(--bg-secondary);
+            border: 1px solid rgba(255, 255, 255, 0.08);
+            border-radius: var(--border-radius-lg);
+            width: 100%;
+            max-width: 550px;
+            box-shadow: 0 20px 50px rgba(0, 0, 0, 0.4);
+            transform: scale(0.95) translateY(10px);
+            transition: var(--transition-smooth);
+            overflow: hidden;
+        }
+
+        .modal-overlay.active .modal-card {
+            transform: scale(1) translateY(0);
+        }
+
+        .modal-header {
+            padding: 1.25rem 1.5rem;
+            border-bottom: 1px solid rgba(255, 255, 255, 0.05);
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+        }
+
+        .modal-header h2 {
+            font-size: 1.15rem;
+            font-weight: 700;
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+        }
+
+        .close-modal-btn {
+            background: transparent;
+            border: none;
+            color: var(--text-secondary);
+            cursor: pointer;
+            padding: 4px;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            transition: var(--transition-smooth);
+        }
+
+        .close-modal-btn:hover {
+            background: rgba(255, 255, 255, 0.05);
+            color: var(--text-primary);
+        }
+
+        .modal-body {
+            padding: 1.5rem;
+            display: flex;
+            flex-direction: column;
+            gap: 1.25rem;
+        }
+
+        .tweet-composer-area {
+            background: var(--bg-primary);
+            border: 1px solid rgba(255, 255, 255, 0.06);
+            border-radius: var(--border-radius-md);
+            padding: 1rem;
+            display: flex;
+            flex-direction: column;
+            gap: 0.75rem;
+        }
+
+        .tweet-textarea {
+            width: 100%;
+            height: 120px;
+            background: transparent;
+            border: none;
+            resize: none;
+            color: var(--text-primary);
+            font-family: inherit;
+            font-size: 0.95rem;
+            line-height: 1.5;
+            outline: none;
+        }
+
+        .composer-footer {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            border-top: 1px solid rgba(255, 255, 255, 0.04);
+            padding-top: 0.75rem;
+        }
+
+        .char-counter {
+            font-size: 0.75rem;
+            color: var(--text-muted);
+            font-weight: 600;
+        }
+
+        .char-counter.warning {
+            color: var(--issue-color);
+        }
+
+        .char-counter.danger {
+            color: var(--deprecation-color);
+        }
+
+        .preview-label {
+            font-size: 0.8rem;
+            text-transform: uppercase;
+            letter-spacing: 0.05em;
+            color: var(--text-muted);
+            font-weight: 700;
+        }
+
+        .original-update-preview {
+            background: rgba(255, 255, 255, 0.02);
+            border: 1px solid rgba(255, 255, 255, 0.04);
+            border-radius: var(--border-radius-md);
+            padding: 1rem;
+            max-height: 150px;
+            overflow-y: auto;
+            font-size: 0.85rem;
+            color: var(--text-secondary);
+            line-height: 1.5;
+        }
+
+        .modal-footer {
+            padding: 1.25rem 1.5rem;
+            border-top: 1px solid rgba(255, 255, 255, 0.05);
+            display: flex;
+            align-items: center;
+            justify-content: flex-end;
+            gap: 0.75rem;
+            background: rgba(0, 0, 0, 0.1);
+        }
+
+        .modal-footer .btn {
+            padding: 0.625rem 1.25rem;
+            border-radius: var(--border-radius-md);
+            font-size: 0.875rem;
+            font-weight: 600;
+            cursor: pointer;
+            transition: var(--transition-smooth);
+        }
+
+        .modal-footer .cancel-btn {
+            background: transparent;
+            border: 1px solid rgba(255, 255, 255, 0.06);
+            color: var(--text-secondary);
+        }
+
+        .modal-footer .cancel-btn:hover {
+            background: rgba(255, 255, 255, 0.04);
+            color: var(--text-primary);
+        }
+
+        .modal-footer .confirm-tweet-btn {
+            background: #1d9bf0;
+            border: 1px solid #1d9bf0;
+            color: white;
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+            box-shadow: 0 4px 15px rgba(29, 155, 240, 0.2);
+        }
+
+        .modal-footer .confirm-tweet-btn:hover {
+            background: #1a8cd8;
+            box-shadow: 0 6px 20px rgba(29, 155, 240, 0.35);
+        }
+
+        .modal-footer .confirm-tweet-btn.disabled {
+            opacity: 0.5;
+            pointer-events: none;
+            box-shadow: none;
+        }
+
+        /* Toast notifications */
+        .toast-container {
+            position: fixed;
+            bottom: 2rem;
+            right: 2rem;
+            display: flex;
+            flex-direction: column;
+            gap: 0.75rem;
+            z-index: 1001;
+        }
+
+        .toast {
+            background: var(--bg-secondary);
+            border: 1px solid rgba(255, 255, 255, 0.08);
+            border-left: 4px solid var(--accent-blue);
+            color: var(--text-primary);
+            padding: 1rem 1.25rem;
+            border-radius: var(--border-radius-md);
+            box-shadow: 0 10px 25px rgba(0, 0, 0, 0.3);
+            display: flex;
+            align-items: center;
+            gap: 0.75rem;
+            min-width: 300px;
+            transform: translateX(120%);
+            transition: var(--transition-smooth);
+        }
+
+        .toast.success { border-left-color: var(--feature-color); }
+        .toast.error { border-left-color: var(--deprecation-color); }
+
+        .toast.active {
+            transform: translateX(0);
+        }
+
+        .toast i {
+            width: 20px;
+            height: 20px;
+        }
+
+        .toast.success i { color: var(--feature-color); }
+        .toast.error i { color: var(--deprecation-color); }
+
+        .toast-content {
+            font-size: 0.875rem;
+            font-weight: 500;
+        }
+
+        /* Responsive Design */
+        @media (max-width: 1024px) {
+            main {
+                grid-template-columns: 1fr;
+            }
+            .sidebar {
+                position: static;
+            }
+        }
+
+        @media (max-width: 640px) {
+            header {
+                padding: 1rem;
+            }
+            main {
+                padding: 1rem;
+            }
+            .header-container {
+                flex-direction: column;
+                gap: 1rem;
+                align-items: stretch;
+            }
+            .refresh-btn {
+                justify-content: center;
+            }
+        }
+    </style>
+</head>
+<body>
+
+    <!-- Toast Notifications Container -->
+    <div class="toast-container" id="toast-container"></div>
+
+    <!-- Header Section -->
+    <header>
+        <div class="header-container">
+            <div class="logo-area">
+                <div class="logo-icon">
+                    <i data-lucide="database"></i>
+                </div>
+                <div class="logo-title">
+                    <h1>BigQuery Release Notes</h1>
+                    <p>Google Cloud Updates Stream</p>
+                </div>
+            </div>
+            <button class="refresh-btn" id="refresh-btn" onclick="fetchUpdates()">
+                <i data-lucide="rotate-cw"></i>
+                <span>Refresh Feed</span>
+            </button>
+        </div>
+    </header>
+
+    <!-- Main Content Grid -->
+    <main>
+        <!-- Filter Sidebar -->
+        <div class="sidebar">
+            <div class="search-box">
+                <i data-lucide="search"></i>
+                <input type="text" id="search-input" placeholder="Search release notes..." oninput="filterAndRender()">
+            </div>
+            
+            <div class="sidebar-card">
+                <h3><i data-lucide="filter"></i> Categories</h3>
+                <ul class="filter-list">
+                    <li>
+                        <button class="filter-btn active" data-filter="all" onclick="setFilter('all')">
+                            <span><span class="filter-indicator" style="background: var(--text-muted)"></span>All Updates</span>
+                            <span class="badge-count" id="count-all">0</span>
+                        </button>
+                    </li>
+                    <li>
+                        <button class="filter-btn" data-filter="feature" onclick="setFilter('feature')">
+                            <span><span class="filter-indicator" style="background: var(--feature-color)"></span>Features</span>
+                            <span class="badge-count" id="count-feature">0</span>
+                        </button>
+                    </li>
+                    <li>
+                        <button class="filter-btn" data-filter="announcement" onclick="setFilter('announcement')">
+                            <span><span class="filter-indicator" style="background: var(--announcement-color)"></span>Announcements</span>
+                            <span class="badge-count" id="count-announcement">0</span>
+                        </button>
+                    </li>
+                    <li>
+                        <button class="filter-btn" data-filter="issue" onclick="setFilter('issue')">
+                            <span><span class="filter-indicator" style="background: var(--issue-color)"></span>Issues</span>
+                            <span class="badge-count" id="count-issue">0</span>
+                        </button>
+                    </li>
+                    <li>
+                        <button class="filter-btn" data-filter="deprecation" onclick="setFilter('deprecation')">
+                            <span><span class="filter-indicator" style="background: var(--deprecation-color)"></span>Deprecations</span>
+                            <span class="badge-count" id="count-deprecation">0</span>
+                        </button>
+                    </li>
+                </ul>
+            </div>
+        </div>
+
+        <!-- Release Notes Feed -->
+        <div class="content-area">
+            <div class="stream-header">
+                <div class="stream-info" id="stream-info">Showing all updates</div>
+                <div class="stream-sort">
+                    <span>Sort:</span>
+                    <select id="sort-select" onchange="filterAndRender()">
+                        <option value="newest">Newest First</option>
+                        <option value="oldest">Oldest First</option>
+                    </select>
+                </div>
+            </div>
+
+            <!-- Main Notes Container -->
+            <div class="notes-list" id="notes-list">
+                <!-- Skeleton loader templates will be inserted here while loading -->
+            </div>
+        </div>
+    </main>
+
+    <!-- Tweet Modal Overlay -->
+    <div class="modal-overlay" id="tweet-modal">
+        <div class="modal-card">
+            <div class="modal-header">
+                <h2><i data-lucide="twitter" style="color: #1d9bf0"></i> Craft Tweet</h2>
+                <button class="close-modal-btn" onclick="closeTweetModal()">
+                    <i data-lucide="x"></i>
+                </button>
+            </div>
+            <div class="modal-body">
+                <div class="tweet-composer-area">
+                    <textarea class="tweet-textarea" id="tweet-textarea" oninput="updateCharCount()" placeholder="What's happening?"></textarea>
+                    <div class="composer-footer">
+                        <span class="char-counter" id="char-counter">0 / 280</span>
+                    </div>
+                </div>
+                
+                <span class="preview-label">Selected Update Content</span>
+                <div class="original-update-preview" id="original-update-preview">
+                    <!-- Update preview snippet -->
+                </div>
+            </div>
+            <div class="modal-footer">
+                <button class="btn cancel-btn" onclick="closeTweetModal()">Cancel</button>
+                <button class="btn confirm-tweet-btn" id="confirm-tweet-btn" onclick="publishTweet()">
+                    <i data-lucide="send"></i>
+                    <span>Share on X</span>
+                </button>
+            </div>
+        </div>
+    </div>
+
+    <!-- JS Logic -->
+    <script>
+        let allUpdates = [];
+        let currentFilter = 'all';
+        let activeTweetUpdate = null;
+
+        // On Page Load
+        document.addEventListener('DOMContentLoaded', () => {
+            lucide.createIcons();
+            fetchUpdates();
+        });
+
+        // Show a temporary visual Toast
+        function showToast(message, type = 'success') {
+            const container = document.getElementById('toast-container');
+            const toast = document.createElement('div');
+            toast.className = `toast ${type}`;
+            
+            const iconName = type === 'success' ? 'check-circle' : 'alert-triangle';
+            toast.innerHTML = `
+                <i data-lucide="${iconName}"></i>
+                <div class="toast-content">${message}</div>
+            `;
+            
+            container.appendChild(toast);
+            lucide.createIcons({attrs: {class: 'lucide-toast-icon'}});
+            
+            // Trigger animation
+            setTimeout(() => toast.classList.add('active'), 50);
+            
+            // Remove after 3s
+            setTimeout(() => {
+                toast.classList.remove('active');
+                setTimeout(() => toast.remove(), 300);
+            }, 3000);
+        }
+
+        // Render Skeletons during Loading
+        function renderSkeletons() {
+            const container = document.getElementById('notes-list');
+            container.innerHTML = '';
+            
+            for (let i = 0; i < 4; i++) {
+                const card = document.createElement('div');
+                card.className = 'skeleton-card';
+                card.innerHTML = `
+                    <div class="note-meta">
+                        <div class="meta-left">
+                            <div class="skeleton skeleton-badge"></div>
+                            <div class="skeleton skeleton-date"></div>
+                        </div>
+                    </div>
+                    <div class="skeleton skeleton-text"></div>
+                    <div class="skeleton skeleton-text"></div>
+                    <div class="skeleton skeleton-text short"></div>
+                    <div class="skeleton skeleton-actions"></div>
+                `;
+                container.appendChild(card);
+            }
+        }
+
+        // Fetch Updates from server API
+        async function fetchUpdates() {
+            const refreshBtn = document.getElementById('refresh-btn');
+            refreshBtn.classList.add('loading');
+            refreshBtn.disabled = true;
+            
+            renderSkeletons();
+            
+            try {
+                const response = await fetch('/api/notes');
+                const data = await response.json();
+                
+                if (data.success) {
+                    allUpdates = data.updates;
+                    updateSidebarCounts();
+                    filterAndRender();
+                    showToast('Successfully updated release notes.');
+                } else {
+                    throw new Error(data.error || 'Failed to fetch notes');
+                }
+            } catch (err) {
+                console.error(err);
+                showToast(err.message, 'error');
+                document.getElementById('notes-list').innerHTML = `
+                    <div class="empty-state">
+                        <i data-lucide="alert-octagon" style="color: var(--deprecation-color)"></i>
+                        <h3>Error Loading Updates</h3>
+                        <p>${err.message}</p>
+                        <button class="refresh-btn" onclick="fetchUpdates()" style="margin-top: 1rem">
+                            <i data-lucide="rotate-cw"></i>
+                            <span>Try Again</span>
+                        </button>
+                    </div>
+                `;
+                lucide.createIcons();
+            } finally {
+                refreshBtn.classList.remove('loading');
+                refreshBtn.disabled = false;
+            }
+        }
+
+        // Update counts in sidebar filter badges
+        function updateSidebarCounts() {
+            const counts = {
+                all: allUpdates.length,
+                feature: 0,
+                announcement: 0,
+                issue: 0,
+                deprecation: 0
+            };
+            
+            allUpdates.forEach(update => {
+                const type = update.type.toLowerCase();
+                if (counts[type] !== undefined) {
+                    counts[type]++;
+                } else {
+                    counts['all']++;
+                }
+            });
+            
+            document.getElementById('count-all').innerText = counts.all;
+            document.getElementById('count-feature').innerText = counts.feature;
+            document.getElementById('count-announcement').innerText = counts.announcement;
+            document.getElementById('count-issue').innerText = counts.issue;
+            document.getElementById('count-deprecation').innerText = counts.deprecation;
+        }
+
+        // Set filter category
+        function setFilter(category) {
+            currentFilter = category;
+            
+            // Update UI Active states
+            document.querySelectorAll('.filter-btn').forEach(btn => {
+                if (btn.getAttribute('data-filter') === category) {
+                    btn.classList.add('active');
+                } else {
+                    btn.classList.remove('active');
+                }
+            });
+            
+            filterAndRender();
+        }
+
+        // Filter and Render
+        function filterAndRender() {
+            const searchQuery = document.getElementById('search-input').value.toLowerCase().trim();
+            const sortOrder = document.getElementById('sort-select').value;
+            const container = document.getElementById('notes-list');
+            
+            // 1. Filter
+            let filtered = allUpdates.filter(update => {
+                // Category Filter
+                if (currentFilter !== 'all' && update.type.toLowerCase() !== currentFilter) {
+                    return false;
+                }
+                
+                // Search Query Filter
+                if (searchQuery) {
+                    const textMatch = update.text.toLowerCase().includes(searchQuery);
+                    const typeMatch = update.type.toLowerCase().includes(searchQuery);
+                    const dateMatch = update.date.toLowerCase().includes(searchQuery);
+                    return textMatch || typeMatch || dateMatch;
+                }
+                
+                return true;
+            });
+            
+            // 2. Sort
+            filtered.sort((a, b) => {
+                const dateA = new Date(a.iso_date || a.date);
+                const dateB = new Date(b.iso_date || b.date);
+                return sortOrder === 'newest' ? dateB - dateA : dateA - dateB;
+            });
+            
+            // Update info text
+            const infoText = searchQuery 
+                ? `Found ${filtered.length} matches for "${searchQuery}"`
+                : `Showing ${filtered.length} of ${allUpdates.length} updates`;
+            document.getElementById('stream-info').innerText = infoText;
+            
+            // 3. Render
+            if (filtered.length === 0) {
+                container.innerHTML = `
+                    <div class="empty-state">
+                        <i data-lucide="info"></i>
+                        <h3>No updates found</h3>
+                        <p>Try modifying your search query or changing the category filter.</p>
+                    </div>
+                `;
+                lucide.createIcons();
+                return;
+            }
+            
+            container.innerHTML = '';
+            filtered.forEach(note => {
+                const typeClass = note.type.toLowerCase();
+                const card = document.createElement('div');
+                card.className = `note-card ${typeClass}`;
+                card.id = note.id;
+                
+                // Set Lucide icon based on type
+                let typeIcon = 'help-circle';
+                if (typeClass === 'feature') typeIcon = 'sparkles';
+                else if (typeClass === 'announcement') typeIcon = 'megaphone';
+                else if (typeClass === 'issue') typeIcon = 'alert-circle';
+                else if (typeClass === 'deprecation') typeIcon = 'trash-2';
+                
+                card.innerHTML = `
+                    <div class="note-meta">
+                        <div class="meta-left">
+                            <span class="type-badge ${typeClass}">
+                                <i data-lucide="${typeIcon}" style="width: 14px; height: 14px;"></i>
+                                ${note.type}
+                            </span>
+                            <span class="note-date">
+                                <i data-lucide="calendar" style="width: 14px; height: 14px;"></i>
+                                ${note.date}
+                            </span>
+                        </div>
+                    </div>
+                    <div class="note-body">
+                        ${note.content}
+                    </div>
+                    <div class="note-actions">
+                        <button class="action-btn" onclick="copyShareLink('${note.link}')">
+                            <i data-lucide="copy" style="width: 14px; height: 14px;"></i>
+                            Copy Link
+                        </button>
+                        <button class="action-btn tweet-btn" onclick="openTweetModal('${note.id}')">
+                            <i data-lucide="twitter" style="width: 14px; height: 14px;"></i>
+                            Tweet Update
+                        </button>
+                    </div>
+                `;
+                container.appendChild(card);
+            });
+            
+            lucide.createIcons();
+        }
+
+        // Copy release note direct link to clipboard
+        function copyShareLink(link) {
+            navigator.clipboard.writeText(link).then(() => {
+                showToast('Link copied to clipboard!');
+            }).catch(err => {
+                showToast('Failed to copy link', 'error');
+            });
+        }
+
+        // Open Tweet composition modal
+        function openTweetModal(id) {
+            const update = allUpdates.find(u => u.id === id);
+            if (!update) return;
+            
+            activeTweetUpdate = update;
+            
+            // Build a smart default tweet message
+            // Format: [Feature/Announcement] BigQuery Update ([Date]): [Snippet] #BigQuery #GoogleCloud [Link]
+            let tweetText = `BigQuery ${update.type} (${update.date}):\n"${update.short_text}"\n\n#BigQuery #GoogleCloud\n${update.link}`;
+            
+            document.getElementById('tweet-textarea').value = tweetText;
+            document.getElementById('original-update-preview').innerText = update.text;
+            
+            updateCharCount();
+            
+            document.getElementById('tweet-modal').classList.add('active');
+        }
+
+        // Close Tweet modal
+        function closeTweetModal() {
+            document.getElementById('tweet-modal').classList.remove('active');
+            activeTweetUpdate = null;
+        }
+
+        // Update Tweet character count
+        function updateCharCount() {
+            const text = document.getElementById('tweet-textarea').value;
+            const count = text.length;
+            const counterEl = document.getElementById('char-counter');
+            const confirmBtn = document.getElementById('confirm-tweet-btn');
+            
+            counterEl.innerText = `${count} / 280`;
+            
+            // CSS States based on character limit
+            counterEl.className = 'char-counter';
+            if (count > 280) {
+                counterEl.classList.add('danger');
+                confirmBtn.classList.add('disabled');
+            } else if (count > 250) {
+                counterEl.classList.add('warning');
+                confirmBtn.classList.remove('disabled');
+            } else {
+                confirmBtn.classList.remove('disabled');
+            }
+        }
+
+        // Share the customized Tweet
+        function publishTweet() {
+            const text = document.getElementById('tweet-textarea').value;
+            if (text.length > 280) {
+                showToast('Tweet exceeds character limit of 280!', 'error');
+                return;
+            }
+            
+            const twitterUrl = `https://twitter.com/intent/tweet?text=${encodeURIComponent(text)}`;
+            window.open(twitterUrl, '_blank');
+            closeTweetModal();
+            showToast('Opening Twitter to share!');
+        }
+    </script>
+</body>
+</html>
