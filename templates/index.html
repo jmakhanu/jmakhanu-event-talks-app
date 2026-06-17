@@ -177,6 +177,18 @@
             transform: translateY(1px);
         }
 
+        .export-btn {
+            background: rgba(16, 185, 129, 0.08);
+            border-color: rgba(16, 185, 129, 0.2);
+            color: var(--feature-color);
+        }
+
+        .export-btn:hover {
+            background: rgba(16, 185, 129, 0.15);
+            border-color: rgba(16, 185, 129, 0.35);
+            color: var(--feature-color);
+        }
+
         .refresh-btn.loading svg {
             animation: spin 1s linear infinite;
         }
@@ -931,10 +943,16 @@
                     <p>Google Cloud Updates Stream</p>
                 </div>
             </div>
-            <button class="refresh-btn" id="refresh-btn" onclick="fetchUpdates()">
-                <i data-lucide="rotate-cw"></i>
-                <span>Refresh Feed</span>
-            </button>
+            <div style="display: flex; gap: 0.75rem;">
+                <button class="refresh-btn export-btn" id="export-csv-btn" onclick="exportToCSV()">
+                    <i data-lucide="download"></i>
+                    <span>Export CSV</span>
+                </button>
+                <button class="refresh-btn" id="refresh-btn" onclick="fetchUpdates()">
+                    <i data-lucide="rotate-cw"></i>
+                    <span>Refresh Feed</span>
+                </button>
+            </div>
         </div>
     </header>
 
@@ -1180,36 +1198,38 @@
             filterAndRender();
         }
 
-        // Filter and Render
-        function filterAndRender() {
+        // Get currently filtered and sorted notes
+        function getFilteredNotes() {
             const searchQuery = document.getElementById('search-input').value.toLowerCase().trim();
             const sortOrder = document.getElementById('sort-select').value;
-            const container = document.getElementById('notes-list');
             
-            // 1. Filter
             let filtered = allUpdates.filter(update => {
-                // Category Filter
                 if (currentFilter !== 'all' && update.type.toLowerCase() !== currentFilter) {
                     return false;
                 }
-                
-                // Search Query Filter
                 if (searchQuery) {
                     const textMatch = update.text.toLowerCase().includes(searchQuery);
                     const typeMatch = update.type.toLowerCase().includes(searchQuery);
                     const dateMatch = update.date.toLowerCase().includes(searchQuery);
                     return textMatch || typeMatch || dateMatch;
                 }
-                
                 return true;
             });
             
-            // 2. Sort
             filtered.sort((a, b) => {
                 const dateA = new Date(a.iso_date || a.date);
                 const dateB = new Date(b.iso_date || b.date);
                 return sortOrder === 'newest' ? dateB - dateA : dateA - dateB;
             });
+            
+            return filtered;
+        }
+
+        // Filter and Render
+        function filterAndRender() {
+            const container = document.getElementById('notes-list');
+            const filtered = getFilteredNotes();
+            const searchQuery = document.getElementById('search-input').value.toLowerCase().trim();
             
             // Update info text
             const infoText = searchQuery 
@@ -1262,8 +1282,12 @@
                     </div>
                     <div class="note-actions">
                         <button class="action-btn" onclick="copyShareLink('${note.link}')">
-                            <i data-lucide="copy" style="width: 14px; height: 14px;"></i>
+                            <i data-lucide="link" style="width: 14px; height: 14px;"></i>
                             Copy Link
+                        </button>
+                        <button class="action-btn" onclick="copyTextContent('${note.id}')">
+                            <i data-lucide="clipboard-copy" style="width: 14px; height: 14px;"></i>
+                            Copy Text
                         </button>
                         <button class="action-btn tweet-btn" onclick="openTweetModal('${note.id}')">
                             <i data-lucide="twitter" style="width: 14px; height: 14px;"></i>
@@ -1284,6 +1308,60 @@
             }).catch(err => {
                 showToast('Failed to copy link', 'error');
             });
+        }
+
+        // Copy update text content to clipboard
+        function copyTextContent(id) {
+            const update = allUpdates.find(u => u.id === id);
+            if (!update) return;
+            navigator.clipboard.writeText(update.text).then(() => {
+                showToast('Update content copied to clipboard!');
+            }).catch(err => {
+                showToast('Failed to copy text content', 'error');
+            });
+        }
+
+        // Export filtered notes to CSV file
+        function exportToCSV() {
+            const filtered = getFilteredNotes();
+            if (filtered.length === 0) {
+                showToast('No updates to export!', 'error');
+                return;
+            }
+            
+            const headers = ['ID', 'Date', 'Type', 'Content Text', 'Link'];
+            const escapeCSV = (val) => {
+                if (val === null || val === undefined) return '';
+                let formatted = val.toString().replace(/"/g, '""');
+                if (formatted.includes(',') || formatted.includes('\n') || formatted.includes('"')) {
+                    formatted = `"${formatted}"`;
+                }
+                return formatted;
+            };
+            
+            const rows = filtered.map(note => [
+                note.id,
+                note.date,
+                note.type,
+                note.text,
+                note.link
+            ]);
+            
+            const csvContent = [
+                headers.join(','),
+                ...rows.map(r => r.map(escapeCSV).join(','))
+            ].join('\n');
+            
+            const blob = new Blob([csvContent], { type: 'text/csv;charset=utf-8;' });
+            const url = URL.createObjectURL(blob);
+            const link = document.createElement('a');
+            link.setAttribute('href', url);
+            link.setAttribute('download', `bigquery_release_notes_${currentFilter}_${new Date().toISOString().slice(0, 10)}.csv`);
+            link.style.visibility = 'hidden';
+            document.body.appendChild(link);
+            link.click();
+            document.body.removeChild(link);
+            showToast('Successfully exported CSV!');
         }
 
         // Open Tweet composition modal
